@@ -21,13 +21,23 @@ struct Colour: Decodable {
     var rgb: RGB
 }
 
+struct Item: Decodable {
+    var id: String
+    var name: String
+}
+
+struct ColourWithItems {
+    var colour: Colour
+    var items: [Item]
+}
+
 class ViewController: UIViewController {
     
     var headerView: UIView?
     var headerLabel: UILabel?
     var tableView: UITableView?
     
-    var colours: [Colour] = []
+    var colours: [ColourWithItems] = []
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -39,9 +49,16 @@ class ViewController: UIViewController {
     }
 
     private func loadColours() {
-        let url = URL(string: "http://localhost:5000/my-colours")!
-        var request = URLRequest(url: url)
-        request.setValue("application/vnd.chamook.api+json; including=id,name,hex,rgb", forHTTPHeaderField: "Accept")
+        struct ColourDto: Decodable {
+            var colours: [Colour]
+        }
+        struct ItemDto: Decodable {
+            var items: [Item]
+        }
+        
+        let myColoursUrl = URL(string: "http://localhost:8081/my-colours")!
+        var request = URLRequest(url: myColoursUrl)
+        request.setValue("application/json", forHTTPHeaderField: "Accept")
         
         URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
             guard error == nil else {
@@ -54,17 +71,34 @@ class ViewController: UIViewController {
             }
             
             do {
-                struct ColourDto: Decodable {
-                    var colours: [Colour]
-                }
                 let colourData = try JSONDecoder().decode(ColourDto.self, from: content)
-                self?.colours = colourData.colours
-                
-                DispatchQueue.main.async {
-                    self?.tableView?.reloadData()
+                for colour in colourData.colours {
+                    let itemsUrl = URL(string: "http://localhost:8082/items/\(colour.id)")!
+                    URLSession.shared.dataTask(with: itemsUrl) { [weak self] (data, response, error) in
+                        guard error == nil else {
+                            print("Error getting items for \(colour.id)")
+                            return
+                        }
+                        guard let content = data else {
+                            print("Couldn't get any items for \(colour.id)")
+                            return
+                        }
+                        
+                        do {
+                            let itemData = try JSONDecoder().decode(ItemDto.self, from: content)
+                            self?.colours.append(ColourWithItems(colour: colour, items: itemData.items))
+                            
+                            DispatchQueue.main.async {
+                                self?.tableView?.reloadData()
+                            }
+                        } catch let err {
+                            print("Error decoding item json", err)
+                        }
+                    }.resume()
                 }
+                
             } catch let err {
-                print("Error decoding json", err)
+                print("Error decoding colour json", err)
             }
         }.resume()
     }
@@ -76,7 +110,6 @@ class ViewController: UIViewController {
 
         let table = UITableView()
         table.backgroundColor = .white
-        table.register(UITableViewCell.self, forCellReuseIdentifier: "colour")
         self.view.addSubview(table)
 
         table.translatesAutoresizingMaskIntoConstraints = false
@@ -121,13 +154,23 @@ extension ViewController: UITableViewDataSource {
     }
     
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        if let cell = tableView.dequeueReusableCell(withIdentifier: "colour") {
+        var cell = tableView.dequeueReusableCell(withIdentifier: "colour")
+        if cell == nil {
+            cell = UITableViewCell(style: .subtitle, reuseIdentifier: "colour")
+        }
+        
+        if let cell = cell {
             cell.backgroundColor = .white
             
             if let label = cell.textLabel {
-                let colour = colours[indexPath.item]
+                let colour = colours[indexPath.item].colour
                 label.text = "\(colour.name) (\(colour.hex))"
                 label.textColor = UIColor.init(red: CGFloat(colour.rgb.red), green: CGFloat(colour.rgb.green), blue: CGFloat(colour.rgb.blue), alpha: CGFloat(1))
+            }
+            
+            if let detailLabel = cell.detailTextLabel {
+                let items: [Item] = colours[indexPath.item].items
+                detailLabel.text = items.map{ $0.name }.joined(separator: ", ")
             }
             
             return cell
