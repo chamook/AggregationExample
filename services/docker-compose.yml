@@ -1,0 +1,11 @@
+version: "3"
+services:
+  colours:
+    build: ./colours/src/Chamook.Colours
+    ports:
+      - 8081:80
+
+  items:
+    build: ./items/src/Chamook.Items
+    ports:
+      - 8082:80
