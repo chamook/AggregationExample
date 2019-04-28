@@ -8,99 +8,44 @@
 
 import UIKit
 
-struct RGB: Decodable {
-    var red: Int
-    var green: Int
-    var blue: Int
-}
-
-struct Colour: Decodable {
-    var id: String
-    var name: String
-    var hex: String
-    var rgb: RGB
-}
-
-struct Item: Decodable {
-    var id: String
-    var name: String
-}
-
-struct ColourWithItems {
-    var colour: Colour
-    var items: [Item]
-}
-
 class ViewController: UIViewController {
     
     var headerView: UIView?
     var headerLabel: UILabel?
     var tableView: UITableView?
     
-    var colours: [ColourWithItems] = []
-
+    var colours: [ColourWithItems] = [] {
+        didSet {
+            DispatchQueue.main.async {
+                self.tableView?.reloadData()
+            }
+        }
+    }
+    
+    var dataFetcher: DataFetcher
+    
+    init(dataFetcher: DataFetcher) {
+        self.dataFetcher = dataFetcher
+        
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    @available(*, unavailable)
+    required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         
         self.installHeader()
         self.installTableView()
         
-        self.loadColours()
-    }
-
-    private func loadColours() {
-        struct ColourDto: Decodable {
-            var colours: [Colour]
-        }
-        struct ItemDto: Decodable {
-            var items: [Item]
-        }
-        
-        let myColoursUrl = URL(string: "http://localhost:8081/my-colours")!
-        var request = URLRequest(url: myColoursUrl)
-        request.setValue("application/json", forHTTPHeaderField: "Accept")
-        
-        URLSession.shared.dataTask(with: request) { [weak self] (data, response, error) in
-            guard error == nil else {
-                print("Error getting colours")
-                return
-            }
-            guard let content = data else {
-                print("Couldn't get any colours")
-                return
-            }
+        self.dataFetcher.refreshData { [weak self] in
+            guard let sself = self else { return }
             
-            do {
-                let colourData = try JSONDecoder().decode(ColourDto.self, from: content)
-                for colour in colourData.colours {
-                    let itemsUrl = URL(string: "http://localhost:8082/items/\(colour.id)")!
-                    URLSession.shared.dataTask(with: itemsUrl) { [weak self] (data, response, error) in
-                        guard error == nil else {
-                            print("Error getting items for \(colour.id)")
-                            return
-                        }
-                        guard let content = data else {
-                            print("Couldn't get any items for \(colour.id)")
-                            return
-                        }
-                        
-                        do {
-                            let itemData = try JSONDecoder().decode(ItemDto.self, from: content)
-                            self?.colours.append(ColourWithItems(colour: colour, items: itemData.items))
-                            
-                            DispatchQueue.main.async {
-                                self?.tableView?.reloadData()
-                            }
-                        } catch let err {
-                            print("Error decoding item json", err)
-                        }
-                    }.resume()
-                }
-                
-            } catch let err {
-                print("Error decoding colour json", err)
-            }
-        }.resume()
+            sself.colours = sself.dataFetcher.coloursAndItems
+        }
     }
     
     private func installTableView() {
@@ -169,8 +114,8 @@ extension ViewController: UITableViewDataSource {
             }
             
             if let detailLabel = cell.detailTextLabel {
-                let items: [Item] = colours[indexPath.item].items
-                detailLabel.text = items.map{ $0.name }.joined(separator: ", ")
+                let items: [PricedItem] = colours[indexPath.item].items
+                detailLabel.text = items.map{ "\($0.item.name) [\($0.price)]" }.joined(separator: ", ")
             }
             
             return cell

@@ -7,12 +7,16 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		66C1B2B22274936D005DA597 /* Types.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C1B2B12274936D005DA597 /* Types.swift */; };
+		66C1B2B6227495FB005DA597 /* DataFetcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66C1B2B5227495FB005DA597 /* DataFetcher.swift */; };
 		66E9B1102257810E00A9EAB3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E9B10F2257810E00A9EAB3 /* AppDelegate.swift */; };
 		66E9B1122257810E00A9EAB3 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 66E9B1112257810E00A9EAB3 /* ViewController.swift */; };
 		66E9B1172257810F00A9EAB3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 66E9B1162257810F00A9EAB3 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		66C1B2B12274936D005DA597 /* Types.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Types.swift; sourceTree = "<group>"; };
+		66C1B2B5227495FB005DA597 /* DataFetcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataFetcher.swift; sourceTree = "<group>"; };
 		66E9B10C2257810E00A9EAB3 /* DataCollector.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = DataCollector.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		66E9B10F2257810E00A9EAB3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		66E9B1112257810E00A9EAB3 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
@@ -54,6 +58,8 @@
 				66E9B1112257810E00A9EAB3 /* ViewController.swift */,
 				66E9B1162257810F00A9EAB3 /* Assets.xcassets */,
 				66E9B11B2257810F00A9EAB3 /* Info.plist */,
+				66C1B2B12274936D005DA597 /* Types.swift */,
+				66C1B2B5227495FB005DA597 /* DataFetcher.swift */,
 			);
 			path = DataCollector;
 			sourceTree = "<group>";
@@ -127,7 +133,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				66C1B2B22274936D005DA597 /* Types.swift in Sources */,
 				66E9B1122257810E00A9EAB3 /* ViewController.swift in Sources */,
+				66C1B2B6227495FB005DA597 /* DataFetcher.swift in Sources */,
 				66E9B1102257810E00A9EAB3 /* AppDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
